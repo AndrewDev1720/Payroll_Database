@@ -57,14 +57,16 @@ public class SQLExecQuery {
             boolean exit = false;
             while(exit == false){
                 sc = new Scanner(System.in);
-                System.out.println("Menu option \n"); //printing on the screen to creat menu option for user to choose 
-                System.out.println("1. Add employee \n");//printing on the screen to creat menu option for user to choose 
-                System.out.println("2. View all employee \n");//printing on the screen to creat menu option for user to choose 
-                System.out.println("3. Add job and salary to employee \n");//printing on the screen to creat menu option for user to choose 
-                System.out.println("4. Generate payroll for one employee \n");//printing on the screen to creat menu option for user to choose 
-                System.out.println("5. Generate payroll for all employees \n");//printing on the screen to creat menu option for user to choose 
-                System.out.println("6. Exit the program \n\n");//printing on the screen to creat menu option for user to choose 
-                System.out.print("Choose your option number: ");//printing on the screen to creat menu option for user to choose 
+                System.out.println("Menu option \n");
+                System.out.println("1. Add employee \n");
+                System.out.println("2. View all employee \n");
+                System.out.println("3. Add job and salary to employee \n");
+                System.out.println("4. Generate payroll for one employee \n"); 
+                System.out.println("5. Generate payroll for all employees \n");
+                System.out.println("6. List all of the employees working as a specified job \n");
+                System.out.println("7. Find the total monthly salary of each employee\n");
+                System.out.println("8. Exit the program \n\n");
+                System.out.print("Choose your option number: ");
                 choice = sc.nextInt();
                 switch (choice) {
                     case 1 -> option1(connectionUrl);
@@ -72,6 +74,8 @@ public class SQLExecQuery {
                     case 3 -> option3(connectionUrl);
                     case 4 -> option4(connectionUrl);
                     case 5 -> option5(connectionUrl);
+                    case 6 -> option6(connectionUrl);
+                    case 7 -> option7(connectionUrl);
                 }
                 System.out.println("\n");
                 System.out.println("Press 'E' to exit the program, press 'M' to back to Menu option: "); // ask the user whether to return to menu or not
@@ -315,6 +319,47 @@ public class SQLExecQuery {
 
 
     }
+
+    public static void option6(String connectionUrl){
+        System.out.print("Enter the name of the position: ");
+        String positionName = sc.next();
+        if(!isValidName(positionName)){
+            System.out.println("The input position is invalid!");
+            return;
+        }
+
+        positionName = formatInput(positionName);
+
+        try (Connection connection = DriverManager.getConnection(connectionUrl);
+                Statement statement = connection.createStatement();) {
+            // Create and execute a SELECT SQL statement.
+            String selectSql ="select position.position_name, employee.email, employee.firstname, employee.lastname, employee_position.salary from employee inner join employee_position on employee.id = employee_position.employee_id inner join position on position.id = employee_position.position_id where position.position_name = " + positionName;
+            System.out.println("List all of the employees working as " + positionName + ": ");
+            statement.execute(selectSql);
+
+            printTable(connectionUrl, selectSql);
+            // Print results from select statement
+        }catch(Exception e){
+            System.out.println(e);
+            return;
+        }
+    }
+
+    public static void option7(String connectionUrl){
+        try (Connection connection = DriverManager.getConnection(connectionUrl);
+                Statement statement = connection.createStatement();) {
+            // Create and execute a SELECT SQL statement.
+            String selectSql ="SELECT employee_position.employee_id, employee.firstname, employee.lastname, SUM(salary) AS total_salary FROM employee_position INNER JOIN employee ON employee_position.employee_id = employee.id GROUP BY employee_position.employee_id, employee.firstname, employee.lastname;";
+            statement.execute(selectSql);
+
+            printTable(connectionUrl, selectSql);
+            // Print results from select statement
+        }catch(Exception e){
+            System.out.println(e);
+            return;
+        }
+    }
+
 
 
     public static boolean validateEmail(String email) {
