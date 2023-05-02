@@ -63,9 +63,12 @@ public class SQLExecQuery {
                 System.out.println("3. Add job and salary to employee \n");
                 System.out.println("4. Generate payroll for one employee \n"); 
                 System.out.println("5. Generate payroll for all employees \n");
-                System.out.println("6. List all of the employees working as a specified job \n");
+                System.out.println("6. List all of the employees working in specific position \n");
                 System.out.println("7. Find the total monthly salary of each employee\n");
-                System.out.println("8. Exit the program \n\n");
+                System.out.println("8. Find the total payroll of each employee\n");
+                System.out.println("9. Find the average salary of each department\n");
+                System.out.println("10. Find all employees in a department\n");
+                System.out.println("11. Exit the program \n\n");
                 System.out.print("Choose your option number: ");
                 choice = sc.nextInt();
                 switch (choice) {
@@ -76,7 +79,11 @@ public class SQLExecQuery {
                     case 5 -> option5(connectionUrl);
                     case 6 -> option6(connectionUrl);
                     case 7 -> option7(connectionUrl);
+                    case 8 -> option8(connectionUrl);
+                    case 9 -> option9(connectionUrl);
+                    case 10 -> option10(connectionUrl);
                 }
+                if (choice == 11) break;
                 System.out.println("\n");
                 System.out.println("Press 'E' to exit the program, press 'M' to back to Menu option: "); // ask the user whether to return to menu or not
                 String back = sc.next();
@@ -359,7 +366,60 @@ public class SQLExecQuery {
             return;
         }
     }
+    public static void option8(String connectionUrl){
+        try (Connection connection = DriverManager.getConnection(connectionUrl);
+                Statement statement = connection.createStatement();) {
+            // Create and execute a SELECT SQL statement.
+            String selectSql ="SELECT employee.firstname, employee.lastname, SUM(payroll.payroll_amount) as total_payroll_amount FROM employee INNER JOIN payroll ON employee.id = payroll.employee_id GROUP BY employee.firstname, employee.lastname;";
+            statement.execute(selectSql);
+            
+            printTable(connectionUrl, selectSql);
+            // Print results from select statement
+        }catch(Exception e){
+            System.out.println(e);
+            return;
+        }
+    }
 
+    public static void option9(String connectionUrl){
+        try (Connection connection = DriverManager.getConnection(connectionUrl);
+                Statement statement = connection.createStatement();) {
+            // Create and execute a SELECT SQL statement.
+            String selectSql ="SELECT department.department_name, AVG(employee_position.salary) as avg_salary FROM department INNER JOIN position ON department.id = position.department_id INNER JOIN employee_position ON position.id = employee_position.position_id GROUP BY department.department_name;";
+            statement.execute(selectSql);
+            
+            printTable(connectionUrl, selectSql);
+            // Print results from select statement
+        }catch(Exception e){
+            System.out.println(e);
+            return;
+        }
+    }
+
+    public static void option10(String connectionUrl){
+        System.out.print("Enter the name of the department: ");
+        String departmentName = sc.next();
+        if(!isValidName(departmentName)){
+            System.out.println("The input position is invalid!");
+            return;
+        }
+
+        departmentName = formatInput(departmentName);
+
+        try (Connection connection = DriverManager.getConnection(connectionUrl);
+                Statement statement = connection.createStatement();) {
+            // Create and execute a SELECT SQL statement.
+            String selectSql ="SELECT department.department_name, position.position_name, employee.firstname, employee.lastname, employee.email FROM employee INNER JOIN employee_position ON employee.id = employee_position.employee_id INNER JOIN position ON employee_position.position_id = position.id INNER JOIN department ON position.department_id = department.id WHERE department.department_name = " + departmentName;
+            System.out.println("List all of the employees working as " + departmentName + ": ");
+            statement.execute(selectSql);
+
+            printTable(connectionUrl, selectSql);
+            // Print results from select statement
+        }catch(Exception e){
+            System.out.println(e);
+            return;
+        }
+    }
 
 
     public static boolean validateEmail(String email) {
