@@ -1,0 +1,7 @@
+{
+  "java.project.referencedLibraries": [
+    "lib/**/*.jar",
+    "mssql-jdbc-12.2.0.jre11.jar",
+    "d:\\Case files\\Spring 2023\\CSDS 341\\Jar file\\mssql-jdbc-12.2.0.jre11.jar"
+  ]
+}
